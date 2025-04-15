@@ -1,6 +1,6 @@
-import { IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; // Importing React and hooks
+
+// Importing React and Material UI core components
 import {
   Table,
   TableBody,
@@ -11,12 +11,25 @@ import {
   Paper,
   Typography,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  IconButton,
 } from "@mui/material";
+
+// Material UI components for styling
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 // ProductsTable component: shows products in a styled MUI table
 const ProductsTable = () => {
   // useState to store the products we get from the API
   const [products, setProducts] = useState([]);
+
+  const [editProduct, setEditProduct] = useState(null); // null when no dialog is open
 
   const [newProduct, setNewProduct] = useState({
     title: "",
@@ -72,6 +85,23 @@ const ProductsTable = () => {
           category: "",
           image: "",
         });
+      });
+  };
+
+  const handleEditSave = () => {
+    fetch(`https://fakestoreapi.com/products/${editProduct.id}`, {
+      method: "PUT",
+      body: JSON.stringify(editProduct),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((updatedProduct) => {
+        setProducts(
+          products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
+        );
+        setEditProduct(null); // close dialog
       });
   };
 
@@ -158,12 +188,65 @@ const ProductsTable = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
+                  <IconButton
+                    color="primary"
+                    onClick={() => setEditProduct(product)}
+                  >
+                    <EditIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <Dialog open={!!editProduct} onClose={() => setEditProduct(null)}>
+        <DialogTitle>Edit Product</DialogTitle>
+        <DialogContent
+          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+        >
+          <TextField
+            label="Title"
+            value={editProduct?.title || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, title: e.target.value })
+            }
+          />
+          <TextField
+            label="Price"
+            type="number"
+            value={editProduct?.price || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, price: e.target.value })
+            }
+          />
+          <TextField
+            label="Category"
+            value={editProduct?.category || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, category: e.target.value })
+            }
+          />
+          <TextField
+            label="Image URL"
+            value={editProduct?.image || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, image: e.target.value })
+            }
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setEditProduct(null)}>Cancel</Button>
+          <Button
+            onClick={() => handleEditSave()}
+            variant="contained"
+            color="primary"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
