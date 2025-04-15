@@ -18,6 +18,13 @@ const ProductsTable = () => {
   // useState to store the products we get from the API
   const [products, setProducts] = useState([]);
 
+  const [newProduct, setNewProduct] = useState({
+    title: "",
+    price: "",
+    category: "",
+    image: "",
+  });
+
   // useEffect runs once when the component mounts
   useEffect(() => {
     // Fetching real product data from Fake Store API
@@ -38,6 +45,36 @@ const ProductsTable = () => {
       .catch((err) => console.error("Delete failed", err));
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: value });
+  };
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+
+    fetch("https://fakestoreapi.com/products", {
+      method: "POST",
+      body: JSON.stringify(newProduct),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Show it in the table (even if the API doesn't save it)
+        setProducts([data, ...products]);
+
+        // Clear the form
+        setNewProduct({
+          title: "",
+          price: "",
+          category: "",
+          image: "",
+        });
+      });
+  };
+
   return (
     <>
       {/* Title above the table */}
@@ -46,6 +83,46 @@ const ProductsTable = () => {
       </Typography>
 
       {/* Material UI Table with Paper background */}
+      <form onSubmit={handleAddProduct} style={{ marginBottom: "2rem" }}>
+        <Typography variant="h6" gutterBottom>
+          Add New Product
+        </Typography>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={newProduct.title}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price"
+            value={newProduct.price}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={newProduct.category}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="text"
+            name="image"
+            placeholder="Image URL"
+            value={newProduct.image}
+            onChange={handleInputChange}
+          />
+          <button type="submit">Add Product</button>
+        </div>
+      </form>
+
       <TableContainer component={Paper}>
         <Table aria-label="product table">
           <TableHead>
